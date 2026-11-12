@@ -25,7 +25,11 @@ const userRouter = require("./routes/user.js");
 const dbUrl = process.env.ATLASDB_URL;
 
 if (!dbUrl) {
-    throw new Error("ATLASDB_URL is missing from .env file");
+    throw new Error("ATLASDB_URL is missing from environment variables");
+}
+
+if (!process.env.SECRET) {
+    throw new Error("SECRET is missing from environment variables");
 }
 
 // EJS setup
@@ -33,6 +37,7 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 app.engine("ejs", ejsMate);
 
+// Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride("_method"));
 app.use(express.static(path.join(__dirname, "public")));
@@ -97,28 +102,24 @@ app.all("/{*splat}", (req, res, next) => {
 app.use((err, req, res, next) => {
     const {
         statusCode = 500,
-        message = "Something went wrong!"
+        message = "Something went wrong!",
     } = err;
 
     res.status(statusCode).render("error.ejs", { message });
 });
 
-// Start server after database connection
-async function startServer() {
-    try {
-        await mongoose.connect(dbUrl);
+// Start server for Render
+const PORT = process.env.PORT || 8080;
 
-        console.log("Connected to MongoDB Atlas");
-
-        const PORT = process.env.PORT || 8080;
-
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server is listening on port ${PORT}`);
 });
 
-} catch (err) {
-    console.log("MongoDB Connection Error:", err.message);
-}
-}
-
-startServer();
+// Connect to MongoDB Atlas
+mongoose.connect(dbUrl)
+    .then(() => {
+        console.log("Connected to MongoDB Atlas");
+    })
+    .catch((err) => {
+        console.log("MongoDB Connection Error:", err.message);
+    });
