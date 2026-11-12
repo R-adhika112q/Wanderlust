@@ -110,13 +110,15 @@ async function startServer() {
 
         console.log("Connected to MongoDB Atlas");
 
-        app.listen(8080, () => {
-            console.log("Server is listening to port 8080");
-        });
+        const PORT = process.env.PORT || 8080;
 
-    } catch (err) {
-        console.log("MongoDB Connection Error:", err.message);
-    }
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server is listening on port ${PORT}`);
+});
+
+} catch (err) {
+    console.log("MongoDB Connection Error:", err.message);
+}
 }
 
 startServer();
